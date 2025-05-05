@@ -48,7 +48,7 @@
 
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
   <script>
-    const socket = io({ transports: ['websocket'] });
+    const socket = io();
 
     let username = '';
     let room = '';
@@ -63,14 +63,18 @@
     const videoWrapper = document.getElementById('videoPreviewWrapper');
     const emotionLabel = document.getElementById('emotionLabel');
 
+    let videoReady = false;
+
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => {
         video.srcObject = stream;
         videoWrapper.style.display = 'flex';
+        videoReady = true;
       })
       .catch(console.error);
 
     function captureImage() {
+      if (!videoReady || video.videoWidth === 0 || video.videoHeight === 0) return null;
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -79,10 +83,11 @@
     }
 
     setInterval(() => {
-    const snapshot = captureImage();
-    socket.emit('emotion_ping', { image: snapshot, user: username, room: room });
-    }, 4000);  // every 4 seconds
-
+      const snapshot = captureImage();
+      if (snapshot) {
+        socket.emit('emotion_ping', { image: snapshot, user: username, room: room });
+      }
+    }, 2000);
 
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -95,13 +100,13 @@
 
     socket.on('emotion_update', data => {
       const { emotion } = data;
-      emotionLabel.textContent = emotion;
+      emotionLabel.textContent = emotion || 'No face detected';
       videoWrapper.style.display = 'flex';
     });
 
     socket.on('receive_message', data => {
       const item = document.createElement('li');
-      item.innerHTML = `<strong>${data.user}</strong> 🗣️ (${data.emotion}) ${data.text}`;
+      item.innerHTML = `<strong>${data.user}</strong> 🗣️ (${data.emotion || 'No emotion'}) ${data.text}`;
       if (data.image) {
         const img = document.createElement('img');
         img.src = 'data:image/jpeg;base64,' + data.image;
