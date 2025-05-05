@@ -1,0 +1,15 @@
+# Ignore virtual environment
+venv/
+.env/
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore model/data if not needed in Git
+*.h5
+*.zip
+data/
+
+# VS Code settings
+.vscode/
