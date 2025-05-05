@@ -22,6 +22,7 @@ def index():
 def handle_join(data):
     user = data.get('user', 'Anon')
     room = data.get('room')
+    print(f"\U0001F465 {user} is joining room: {room}")
     join_room(room)
     emit('system_message', {
         'text': f'{user} joined room {room}',
@@ -41,19 +42,25 @@ def handle_message(data):
     emotion = 'No Face'
     image_preview = None
 
-    if image_data and len(image_data) > 100:
-        try:
+    try:
+        if image_data and len(image_data) > 100:
             _, encoded = image_data.split(',', 1)
             img = base64.b64decode(encoded)
             arr = np.frombuffer(img, np.uint8)
             frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
             if frame is not None:
-                emotion, face_crop, _ = detect_emotion_from_image(frame)
+                emotions = []
+                for _ in range(5):
+                    detected_emotion, face_crop, _ = detect_emotion_from_image(frame)
+                    emotions.append(detected_emotion)
+                # Pick most frequent emotion
+                if emotions:
+                    emotion = max(set(emotions), key=emotions.count)
                 if face_crop is not None:
                     _, buffer = cv2.imencode('.jpg', face_crop)
                     image_preview = base64.b64encode(buffer).decode('utf-8')
-        except Exception as e:
-            print("Emotion detection failed:", str(e))
+    except Exception as e:
+        print("Emotion detection failed:", str(e))
 
     timestamp = datetime.now().strftime('%H:%M:%S')
     payload = {
