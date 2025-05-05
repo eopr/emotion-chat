@@ -48,7 +48,7 @@
 
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
   <script>
-    const socket = io();
+    const socket = io({ transports: ['websocket'] });
 
     let username = '';
     let room = '';
@@ -79,9 +79,10 @@
     }
 
     setInterval(() => {
-      const snapshot = captureImage();
-      socket.emit('emotion_ping', { image: snapshot, user: username, room: room });
-    }, 1000);
+    const snapshot = captureImage();
+    socket.emit('emotion_ping', { image: snapshot, user: username, room: room });
+    }, 4000);  // every 4 seconds
+
 
     form.addEventListener('submit', e => {
       e.preventDefault();
