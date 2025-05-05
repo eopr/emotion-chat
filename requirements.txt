@@ -1,8 +1,9 @@
 Flask
-Flask-SocketIO
+flask-socketio
 eventlet
 opencv-python
 numpy
-keras
 scikit-learn
+tensorflow==2.13.0
+keras
 gunicorn
